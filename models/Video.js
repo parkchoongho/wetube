@@ -19,7 +19,8 @@ const VideoSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }]
 });
 
 // 위에서 작성한 Schema를 통해 Model 작성
