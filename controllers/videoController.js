@@ -24,12 +24,17 @@ export const videos = (req, res) =>
 export const getUpload = (req, res) =>
   res.render("upload", { pageTitle: "Upload" });
 
-export const postUpload = (req, res) => {
+export const postUpload = async (req, res) => {
   const {
-    body: { file, title, description }
+    body: { title, description },
+    file: { path }
   } = req;
-  // Todo: Upload and Save Video
-  res.redirect(routes.videoDetail(324393));
+  const newVideo = await Video.create({
+    fileUrl: path,
+    title,
+    description
+  });
+  res.redirect(routes.videoDetail(newVideo.id));
 };
 
 export const videoDetail = (req, res) =>
