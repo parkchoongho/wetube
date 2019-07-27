@@ -3,7 +3,7 @@ import Video from "../models/Video";
 
 export const home = async (req, res) => {
   try {
-    const videoList = await Video.find({});
+    const videoList = await Video.find({}).sort({ _id: -1 });
     res.render("home", { pageTitle: "Home", videoList });
   } catch (error) {
     console.log(error);

@@ -6,15 +6,15 @@ export const getJoin = (req, res) => {
 
 export const postJoin = (res, req) => {
   const {
-    body: { name, email, password, veriPassword }
+    body: { password, veriPassword }
   } = req;
 
   if (password !== veriPassword) {
     res.status(400);
     res.render("join", { pageTitle: "Join" });
   } else {
-    //Todo: Register user
-    //Todo: Log user in
+    // Todo: Register user
+    // Todo: Log user in
     res.redirect(routes.home);
   }
 };
@@ -23,7 +23,7 @@ export const getLogin = (req, res) =>
   res.render("login", { pageTitle: "Login" });
 
 export const postLogin = (req, res) => {
-  res.redirect(roures.home);
+  res.redirect(routes.home);
 };
 
 export const logout = (req, res) => {

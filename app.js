@@ -1,4 +1,4 @@
-import express from "express"; //import express
+import express from "express"; // import express
 import morgan from "morgan";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
