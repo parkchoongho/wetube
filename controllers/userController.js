@@ -72,7 +72,10 @@ export const logout = (req, res) => {
 };
 
 export const getMe = (req, res) => {
-  res.render("userDetail", { pageTitle: "User Detail", user: req.user });
+  const { user } = req;
+
+  // console.log(typeof user.avatarUrl);
+  res.render("userDetail", { pageTitle: "User Detail", user });
 };
 
 export const userDetail = async (req, res) => {
@@ -86,7 +89,7 @@ export const userDetail = async (req, res) => {
     res.redirect(routes.home);
   }
 };
-export const editProfile = (req, res) =>
+export const getEditProfile = (req, res) =>
   res.render("editProfile", { pageTitle: "Edit Profile" });
 export const changePassword = (req, res) =>
   res.render("changePassword", { pageTitle: "Change Password" });
