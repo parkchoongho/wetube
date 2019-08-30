@@ -1,10 +1,10 @@
-## 1. ❓ Node.js란?
+## 1. Node.js란?
 
 브라우저 안에 내장되어 있는 JavaScript를 사용자가 **브라우저 밖에서도 사용할 수 있게 만든 JavaScript**. (쉽게말해 **브라우저 밖의 JavaScript**라 생각하면 된다.) 브라우저 없이 활용가능하게 해준 것이 바로 NodeJS!!
 
 <br>
 
-## 2. ❓ 언제 NodeJS를 쓰지?
+## 2. 언제 NodeJS를 쓰지?
 
 #### 1) 🐱‍💻 프론트 엔드와 백 엔드를 모두 JavaScript로 구현하고 싶은 경우
 
@@ -37,7 +37,7 @@
 
 <br>
 
-## 3. ❓ 누가 NodeJS를 쓰지?
+## 3. 누가 NodeJS를 쓰지?
 
 #### Paypal Uber Netflix 
 
