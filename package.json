@@ -1,0 +1,22 @@
+{
+  "name": "wetube",
+  "version": "1.0.0",
+  "description": "Cloning Youtube with Vanilla and NodeJS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/parkchoongho/wetube.git"
+  },
+  "author": "Park Choong Ho",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/parkchoongho/wetube/issues"
+  },
+  "homepage": "https://github.com/parkchoongho/wetube#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
