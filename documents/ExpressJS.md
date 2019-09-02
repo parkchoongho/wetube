@@ -581,3 +581,33 @@ userRouter.get("/password", (req, res) => res.send("user password"))
 // => app.js 코드를 보면 /user에 들어오면 userRouter를 사용한다. 바로 위 세줄의 코드는 따라서 /user 일 경우, res.send("user index")를 실행한다는 뜻이고 user/edit이면 res.send("user edit"), user/password는 res.send("user password")를 실행한다는 의미이다. 여기 설정되어 있는 Callback 함수가 Controller의 일종.
 ```
 
+<br>
+
+## 10. What is MVC Pattern?
+
+### 1) M Model
+
+=> Data
+
+### 2) V View
+
+=> How does the data look
+
+### 3) C Control
+
+=> Function that looks for the data, 어떤 일이 발생할지에 대한 일종의 로직
+
+**대개 프로젝트에 존재하는 각 Model마다 Controller를 생성한다.**
+
+### Router
+
+```javascript
+const VIDEO_DETAIL = "/:id";
+const EDIT_VIDEO = "/:id/edit";
+const DELETE_VIDEO = "/:id/delete";
+```
+
+Router가 똑똑해서 이렇게 url을 설정하면 id가 변하는 값임을 알아챈다.
+
+Router와 Controller를 헷갈리지말자! (Router는 URL일 뿐!! 로직이 아니다.)
+
