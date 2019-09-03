@@ -774,3 +774,371 @@ export const home = (req, res) => res.render("home", { pageTitle: "Home" });
 
 이렇게 전달할 수 있다. 전달하고 싶은 것은 무엇이든 전달할 수 있다.
 
+### Routes에서 주의할 사항
+
+userRouter.js
+
+```javascript
+import express from "express";
+import routes from "../routes";
+import { users, userDetail, editProfile, changePassword } from "../controllers/userController";
+
+const userRouter = express.Router();
+
+userRouter.get(routes.users, users);
+userRouter.get(routes.userDetail, userDetail);
+userRouter.get(routes.editProfile, editProfile);
+userRouter.get(routes.changePassword, changePassword);
+
+export default userRouter;
+```
+
+/edit-profile url에 접근할 때,  이를 userDetail의 url인 /:id:로 인식할 수 있다. 그 이유는 router에서 userDetail이 editProfile보다 먼저 선언되어 있었기 때문이다. 브라우저가 /edit-profile을 /:id:로 인식하지 않게 하려면 router에서 userDetail을 가장 마지막에 선언해주면 된다.
+
+### BEM
+
+CSS 방법론으로 html 요소에  클래스나 id를 설정할 때 특정한 규칙에 따라 설정하는 것을 말한다.
+
+```jade
+<!-- join.pug -->
+extends layouts/main
+
+block content
+    .form-container
+        form(action=routes.join method="post")
+            input(type="text", name="name" placeholder="Full Name")
+            input(type="email" name="email" placeholder="Email")
+            input(type="password" name="password" placeholder="Password")
+            input(type="password", name="veriPassword", placeholder="Verify Password")
+            input(type="submit" value="Join Now")
+        include partials/socialLogin
+```
+
+```jade
+<!-- login.pug -->
+extends layouts/main
+
+block content
+    .form-container
+        form(action=routes.login method="post")
+            input(type="email", name="email", placeholder="Email")
+            input(type="password", name="password", placeholder="Password")
+            input(type="submit", value="Login")
+        include partials/socialLogin
+```
+
+```jade
+<!-- socialLogin.pug -->
+.social-login
+    button.social-login--github
+        span
+            i.fab.fa-github
+        |Continue with Github
+    button.social-login--facebook
+        span
+            i.fab.fa-facebook
+        |Continue with Facebook
+```
+
+Continue with Github로 치면 Continue를 Tag로 인식한다. 그래서 앞에 |를 붙여 Continue with Github를 Text로 인식하게끔 만들어준다. (Pug 기능)
+
+이 링크 참조
+
+- [https://medium.com/witinweb/css-%EB%B0%A9%EB%B2%95%EB%A1%A0-1-bem-block-element-modifier-1c03034e65a1](https://medium.com/witinweb/css-방법론-1-bem-block-element-modifier-1c03034e65a1)
+
+<br>
+
+## 12. Controller
+
+### Search Controller
+
+컨트롤러가 **query**에 접근하기 위해서는 method가 get이어야 하는데, 그 이유는 **get method**가 url에 query 정보를 추가해주기 때문이다.
+
+header.pug에 input 폼을 추가한다.
+
+```jade
+header.header
+    .header__column
+        a(href=routes.home)
+            i.fab.fa-youtube
+    .header__column
+        form(action=routes.search, method="get")
+            input(type="text", placeholder= "Search By Term", name="term")
+    .header__column
+        ul  
+            li
+                a(href=routes.join) Join
+            li
+                a(href=routes.login) Log In
+```
+
+name을 설정해야 url에 표시가 된다. 
+
+search.pug도 들어온 input값을 반영할 수 있도록 수정한다. 그러면 이제 controller에서 이를 활용하여 작업을 할 수 있다.
+
+search.pug
+
+```jade
+extends layouts/main
+
+block content
+    .search__header 
+        h3 Searching By #{searchingBy}
+```
+
+searchController.js
+
+```javascript
+export const search = (req, res) => {
+  //const searchingBy = req.query.term;
+  const {
+    query: { term: searchingBy }
+  } = req;
+  res.render("search", { pageTitle: "Search", searchingBy });
+};
+```
+
+### Home Controller
+
+가짜 데이터베이스를 생성하고 이를 Home화면에 적용하는 코드.
+
+1. db.js를 작성
+
+```javascript
+export const videoList = [
+  {
+    id: 324393,
+    title: "Video awesome",
+    description: "This is something I love",
+    views: 24,
+    videoFile: "https://archive.org/details/BigBuckBunny_124",
+    creator: {
+      id: 121212,
+      name: "Nicolas",
+      email: "nico@las.com"
+    }
+  },
+  {
+    id: 1212121,
+    title: "Video super",
+    description: "This is something I love",
+    views: 24,
+    videoFile: "https://archive.org/details/BigBuckBunny_124",
+    creator: {
+      id: 121212,
+      name: "Nicolas",
+      email: "nico@las.com"
+    }
+  },
+  {
+    id: 55555,
+    title: "Video nice",
+    description: "This is something I love",
+    views: 24,
+    videoFile: "https://archive.org/details/BigBuckBunny_124",
+    creator: {
+      id: 121212,
+      name: "Nicolas",
+      email: "nico@las.com"
+    }
+  },
+  {
+    id: 11111,
+    title: "Video perfect",
+    description: "This is something I love",
+    views: 24,
+    videoFile: "https://archive.org/details/BigBuckBunny_124",
+    creator: {
+      id: 121212,
+      name: "Nicolas",
+      email: "nico@las.com"
+    }
+  }
+];
+```
+
+2. videoController.js에서 db.js로부터 videoList를 받아와 home 화면  렌더링할 때 videosList 보내기
+
+```javascript
+import { videoList } from "../db";
+
+export const home = (req, res) => {
+  res.render("home", { pageTitle: "Home", videoList });
+};
+```
+
+3. home.pug에서 받아온 videoList를 받아와 화면에 뿌리기
+
+```jade
+extends layouts/main
+
+block content
+    .videos
+        each item in videoList <!--이 each 코드 기억하고 있기-->
+            h1= item.title
+            p= item.description
+```
+
+### Mixins
+
+웹사이트에서 계속되어 반복되는 코드를 복사/붙혀넣기 하지 않고, 재활용하는 방법을 **`mixin`**이라한다. **`mixin`**은 pug 함수의 일종이다. 
+
+```jade
+mixin videoBlock(video = {})
+    .videoBlock
+        video.videoBlock__thumbnail(src=video.videoFile, controls=true)
+        h4.videoBlock__title= video.title
+        h6.videoBlock__views= video.views
+<!--이 코드의 의미는 mixin에 인자가 입력되면, 그 객체의 이름을 video라한다.-->
+```
+
+home.pug도 이에 맞게 수정한다.
+
+```html
+extends layouts/main
+include mixins/videoBlock
+
+block content
+    .videos
+        each item in videoList
+            +videoBlock({
+                videoFile: item.videoFile,
+                title: item.title,
+                views: item.views 
+            })
+<!-- 각각 다른 정보를 기지지만 같은 구조를 가진 데이터를 표시화기 위해 코드를 캡슐화 시킴. mixin을 사용하는 가장 큰 이유(다른 정보, 같은 구조) -->
+```
+
+### 로그인 상태에 따라 header.pug 화면 바꾸기
+
+```html
+header.header
+    .header__column
+        a(href=routes.home)
+            i.fab.fa-youtube
+    .header__column
+        form(action=routes.search, method="get")
+            input(type="text", placeholder= "Search By Term....", name="term")
+    .header__column
+        ul 
+            if !user.isAuthenticated
+                li
+                    a(href=routes.join) Join
+                li
+                    a(href=routes.login) Log In
+            else 
+                li
+                    a(href=routes.upload) Upload
+                li
+                    a(href=routes.userDetail(user.id)) Profile
+                li
+                    a(href=routes.logout) Log Out
+```
+
+user라는 가짜 데이터를 집어넣고 동작하는지를 본다. (데이터는 Middleware에서 locals로 넣는다.)
+
+```javascript
+import routes from "./routes";
+
+export const localsMiddleware = (req, res, next) => {
+    res.locals.siteName = "Wetube";
+    res.locals.routes = routes;
+    res.locals.user = {
+        isAuthenticated: true,
+        id: 1
+    };
+    next();
+};
+```
+
+이렇게 하면 `isAuthenticated` 값을 바꿈으로서 header 파일을 제어할 수 있다. (실제 데이터를 통해 로그인 되었을때는 true이고 아니면 false를 전달.) 그 다음 id 데이터를 통해 user 정보화면 나타낼 수 있다.
+
+```javascript
+const routes = {
+    home: HOME,
+    join: JOIN,
+    login: LOGIN,
+    logout: LOGOUT,
+    search: SEARCH,
+    users: USERS,
+    userDetail: id => {
+        if (id) {
+            return `/users/${id}`;
+        } else {
+            return USER_DETAIL;
+        }
+    },
+    editProfile: EDIT_PROFILE,
+    changePassword: CHANGE_PASSWORD,
+    videos: VIDEOS,
+    upload: UPLOAD,
+    videoDetail: id => {
+        if (id) {
+            return `/videos/${id}`;
+        } else {
+            return VIDEO_DETAIL;
+        }
+    },
+    editVideo: EDIT_VIDEO,
+    deleteVideo: DELETE_VIDEO
+};
+```
+
+ `routes.js` 파일에서 routes 값을 id인자에 따라 변하는 함수를 줌으로써 id에 따라 User 화면이 바뀌는 것을 구현. (Video도 마찬가지)
+
+```javascript
+import express from "express";
+import routes from "../routes";
+import {
+    users,
+    userDetail,
+    editProfile,
+    changePassword
+} from "../controllers/userController";
+
+const userRouter = express.Router();
+
+userRouter.get(routes.users, users);
+userRouter.get(routes.editProfile, editProfile);
+userRouter.get(routes.changePassword, changePassword);
+userRouter.get(routes.userDetail(), userDetail);
+
+export default userRouter;
+```
+
+`routes.userDetail`을 `routes.userDetail()`로 바꿔준다. (함수로 바꾸었기 때문에.) 
+
+<br>
+
+## 13. 통신 상태
+
+### Status Code
+
+상태 코드란, 인터넷이 어떻게 상호작용하는지 표시하는 것을  의미한다.
+
+많은 상태코그가 존재하고 브라우저는 이를 인식할 수 있다.
+
+https://developer.mozilla.org/ko/docs/Web/HTTP/Status
+
+**위 링크 참조**
+
+```javascript
+// userController 코드
+export const postJoin = (req, res) => {
+  // console.log(req.body);
+  const {
+    body: { name, email, password, veriPassword }
+  } = req;
+
+  if (password !== veriPassword) {
+    res.status(400);
+    res.render("join", { pageTitle: "Join" });
+  } else {
+    //Todo: Register user
+    //Todo: Log user in
+    res.redirect(routes.home);
+  }
+};
+//이렇게 error status를 담아서 에러를 전달하는 방법이 있다.
+```
+
