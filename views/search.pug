@@ -1,4 +1,13 @@
 extends layouts/main
+include mixins/videoBlock
 
 block content
-    h3 #{pageTitle}
+    h4 Searching By #{searchingBy}
+    .videos
+        each item in videoList
+            +videoBlock({
+                id: item.id,
+                videoFile: item.videoFile,
+                title: item.title,
+                views: item.views        
+            })
