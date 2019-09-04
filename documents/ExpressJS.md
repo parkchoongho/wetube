@@ -1141,4 +1141,3 @@ export const postJoin = (req, res) => {
 };
 //이렇게 error status를 담아서 에러를 전달하는 방법이 있다.
 ```
-
