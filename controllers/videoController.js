@@ -16,7 +16,7 @@ export const search = (req, res) => {
   const {
     query: { searchingBy }
   } = req;
-  res.render("search", { pageTitle: "Search", searchingBy, videoList });
+  res.render("search", { pageTitle: "Search", searchingBy });
 };
 
 export const getUpload = (req, res) =>
@@ -33,8 +33,7 @@ export const postUpload = async (req, res) => {
     const newVideo = await Video.create({
       fileUrl: path,
       title,
-      description,
-      comments: []
+      description
     });
     // console.log(newVideo);
     res.redirect(routes.videoDetail(newVideo.id));
@@ -44,11 +43,54 @@ export const postUpload = async (req, res) => {
   }
 };
 
-export const videoDetail = (req, res) =>
-  res.render("videoDetail", { pageTitle: "Video Detail" });
+export const videoDetail = async (req, res) => {
+  const {
+    params: { id }
+  } = req;
+  try {
+    const video = await Video.findById(id);
+    res.render("videoDetail", { pageTitle: "Video Detail", video });
+  } catch (err) {
+    res.redirect(routes.home);
+  }
+};
 
-export const editVideo = (req, res) =>
-  res.render("editVideo", { pageTitle: "Edit Video" });
+export const getEditVideo = async (req, res) => {
+  try {
+    const {
+      params: { id }
+    } = req;
+    const video = await Video.findById(id);
 
-export const deleteVideo = (req, res) =>
-  res.render("deleteVideo", { pageTitle: "Delete Video" });
+    res.render("editVideo", { pageTitle: "Edit Video", video });
+  } catch (err) {
+    res.redirect(routes.home);
+  }
+};
+
+export const postEditVideo = async (req, res) => {
+  const {
+    params: { id },
+    body: { title, description }
+  } = req;
+  try {
+    await Video.findOneAndUpdate({ _id: id }, { title, description });
+    res.redirect(routes.videoDetail(id));
+  } catch (err) {
+    console.log(err);
+    res.redirect(routes.home);
+  }
+};
+
+export const deleteVideo = async (req, res) => {
+  try {
+    const {
+      params: { id }
+    } = req;
+    await Video.findOneAndRemove(id);
+    res.redirect(routes.home);
+  } catch (error) {
+    console.log(error);
+    res.redirect(routes.home);
+  }
+};
