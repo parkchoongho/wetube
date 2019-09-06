@@ -384,4 +384,261 @@ app.use("/uploads", express.static());
 // directory에서 파일을 보내주는 미들웨어, 하지만 이렇게 user에 해당하는 파일을 내 server에 저장하는 것은 좋은 방법이 아니다. 왜냐하면 수천명이 웹사이트를 사용한다고 할 때, 이 사용자들의 파일을 모두 server에 저장할 경우 파일이 의도치 않게 삭제되면 어떻게 할 것인가? 따라서 user가 생성한 파일들은 server와 분리되어야한다. html, css 같은 파일들은 static하게 서버에 저장해도 되지만, 유저가 생성하는 파일들을 서버에 저장하는 것은 좋지 못한 방법이다.
 ```
 
-<br>
+### Video ID 받아와 Video Detail에 반영하기 (Edit Video까지)
+
+우선 videoController.js에서 videoDetail에 해당하는 함수를 수정해 video에 해당하는 id를 받아온다.
+
+controller에 어떤 data를 가지고 있다는 것을 표현하고 싶으면 url에 더블콜론(:)과 이름을 넣으면 된다. (이것이 Url로부터 정보를 가져오는 유일한 방법) 
+
+videoDetail 수정
+
+```javascript
+export const videoDetail = async (req, res) => {
+    const {
+        params: { id }
+    } = req;
+
+    try {
+        const video = await Video.findById(id);
+        console.log(video);
+        res.render("videoDetail", { pageTitle: "Video Detail", video });
+    } catch (error) {
+        console.log(error);
+        res.redirect(routes.home);
+    }
+};
+```
+
+videoDetail.pug 수정하기
+
+```html
+extends layouts/main
+
+block content
+    .video__player
+        video(src=`/${video.fileUrl}`)
+    .video__info
+        a(href=routes.editVideo)
+        h5.video__title=video.title
+        span.video__views=video.views
+        p.video__description=video.description
+<!-- video를 만든사람에게는 edit video를 보이게끔 해야됨. 따라서 코드를 더 작성해야한다. -->
+```
+
+video의 src가 `/${video.fileUrl}` 로 된 이유는 파일이 서버에 담겨 있기 때문이다. 따서 앞에 `/` 를 하나 추가한 것이다.
+
+editVideo.pug 수정하기
+
+```html
+extends layouts/main.pug
+
+block content
+    .form-container
+        form(action=routes.editVideo(video.id), method="post")
+            input(type="text", placeholder="Title", name="title", value=video.title)
+            textarea(name="description", placeholder="Description")=video.description
+            input(type="submit", value="Update Video")
+        a.form-container__link.form-container__link--delete(href=`/videos${routes.deleteVideo}`) Delete Video
+```
+
+routes.js 파일 수정
+
+```javascript
+videoDetail: id => {
+    if (id) {
+        return `/videos/${id}`;
+    } else {
+        return VIDEO_DETAIL;
+    }
+},
+editVideo: id => {
+     if (id) {
+        return `/videos/${id}/edit`;
+     } else {
+        return EDIT_VIDEO;
+     }
+}
+```
+
+videoRouter.js에서 editVideo를 getEditVideo와 postEditVideo로 나누기
+
+```javascript
+videoRouter.get(routes.editVideo(), getEditVideo);
+videoRouter.post(routes.editVideo(), postEditVideo);
+```
+
+videoController.js에서 getEditVideo 컨트롤러와 postEditVideo 컨트롤러를 생성
+
+```javascript
+export const getEditVideo = async (req, res) => {
+    const {
+        params: { id }
+    } = req;
+
+    try {
+        const video = await Video.findById(id);
+        res.render("editVideo", { pageTitle: `Edit ${video.title}`, video });
+    } catch (error) {
+        res.redirect(routes.home);
+    }
+};
+
+export const postEditVideo = async (req, res) => {
+    const {
+        params: { id },
+        body: { title, description }
+    } = req;
+    try {
+        await Video.findOneAndUpdate({ id }, { title, description });
+        res.redirect(routes.videoDetail(id));
+    } catch (error) {
+        res.redirect(routes.home);
+    }
+};
+```
+
+### Delete Video
+
+delete는 post가 필요없다. 해당 url로 들어간 후 DB에서 비디오를 삭제하기만 하면 되기 때문이다.
+
+routes.js에서 deleteVideo 부분 수정하기
+
+```javascript
+deleteVideo: id => {
+    if (id) {
+        return `/videos/${id}/delete`;
+    } else {
+        return DELETE_VIDEO;
+    }
+}
+```
+
+videoRouter에서 deleteVideo 함수형태로 바꾸기
+
+```javascript
+videoRouter.get(routes.deleteVideo(), deleteVideo);
+```
+
+editVideo에서 a 태그의 href 속성 바꾸기
+
+```html
+a.form-container__link.form-container__link--delete(href=routes.deleteVideo(video.id)) Delete Video
+```
+
+videoController.js에서 deleteVideo Controller 부분 아래와 같이 수정하기
+
+```javascript
+export const deleteVideo = async (req, res) => {
+    const {
+        params: { id }
+    } = req;
+    try {
+        await Video.findOneAndRemove({ _id: id });
+    } catch (error) {
+        console.log(error);
+    }
+    res.redirect(routes.home);
+};
+```
+
+### Video 정렬
+
+현재 Home 화면에서 최근 영상이 밑에 보이게끔 설정되어 있다. 최근에 영상이 위에 보이게끔 재정렬 시켜보자.
+
+videoController 코드 수정
+
+```javascript
+export const home = async (req, res) => {
+    try {
+        const videoList = await Video.find({}).sort({ _id: -1 });
+        res.render("home", { pageTitle: "Home", videoList });
+    } catch (error) {
+        console.log(error);
+        res.render("home", { pageTitle: "Home", videoList: [] });
+    }
+};
+// sort method 공부할 것. 
+```
+
+`.sort({ _id: -1 })` 코드는 id 순서대로 정렬되어 있는 순서를 뒤바꾸겠다는 의미이다.
+
+### ESLint 설치
+
+Linter는 에러가 발생할 시, 이를 실행한 후, 브라우저상에서 알려주는 것이 아닌 입력한 코드를 보고 바로 알려주는 도구이다.
+
+eslint 설치
+
+```powershell
+PS C:\Users\user\Desktop\Project\wetube> npm install eslint -g
+PS C:\Users\user\Desktop\Project\wetube> eslint --init
+```
+
+-g는 해당 package를 global하게 설치한다는 의미이다. (프로젝트 특정 폴더가 아닌, 컴퓨터 전체에서 사용할 수 있게끔 설치한다는 말.)
+
+=> 이렇게 하니까 에러가 난다. 따라서 eslint를 제거하고 그 다음, extension에서 eslint를 설치하거나, local하게 eslint를 설치할 것.
+
+### 정규표현식
+
+regular expression은 string으로부터 특정 문자열을 가져오는 것을 뜻한다.(정규 표현식은 languate/ES6/Regular Expression.md 파일에 정리되어 있으므로 확인해 볼것.)
+
+영상 검색을 할 수 있도록 regular expression을 활용해 search controller를 작성
+
+videoController.js 파일 수정
+
+```javascript
+export const search = async (req, res) => {
+    const {
+        query: { term: searchingBy }
+    } = req;
+    let videoList = [];
+
+    try {
+        videoList = await Video.find({
+            title: { $regex: searchingBy, $options: "i" }
+        });
+    } catch (error) {
+        console.log(error);
+    }
+    res.render("search", { pageTitle: "Search", searchingBy, videoList });
+};
+```
+
+그리고 search.pug와 videoDetail.pug도 수정.
+
+```jade
+extends layouts/main
+include mixins/videoBlock
+
+block content
+    .search__header 
+        h3 Searching for #{searchingBy}
+    .search__videos
+        if videoList.length === 0
+            h5 No Videos Found
+        each item in videoList
+            +videoBlock({
+                videoFile: item.videoFile,
+                title: item.title,
+                views: item.views,
+                id: item.id
+            })
+```
+
+```jade
+extends layouts/main
+
+block content
+    .video__player
+        video(src=`/${video.fileUrl}`)
+    .video__info
+        a(href=routes.editVideo(video.id)) Edit Video
+        h5.video__title=video.title
+        span.video__views=video.views
+        p.video__description=video.description
+    .video__comments
+        if video.comments.length == 1
+            span.video__comment-number 1 comment
+        else
+            span.video__comment-numer #{video.comments.length} comments
+```
+
