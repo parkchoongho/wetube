@@ -339,3 +339,69 @@ PS C:\Users\user\Desktop\Project\wetube> npm install node-sass
 
 설치 후, webpack을 작동하면 static 폴더에 styles.css 파일이 생성된다.
 
+그 다음은, js 파일과 관련된 webpack을 설정하자.
+
+```javascript
+const path = require("path");
+const autoprefixer = require("autoprefixer");
+const ExtractCSS = require("extract-text-webpack-plugin");
+
+const ENTRY_FILE = path.resolve(__dirname, "assets", "js", "main.js");
+const OUTPUT_DIR = path.join(__dirname, "static");
+
+const config = {
+  entry: ["@babel/polyfill", ENTRY_FILE],
+  module: {
+    rules: [
+      {
+        test: /\.(js)$/,
+        use: [
+          {
+            loader: "babel-loader"
+          }
+        ]
+      },
+
+      {
+        test: /\.(scss)$/,
+        use: ExtractCSS.extract([
+          {
+            loader: "css-loader"
+          },
+          {
+            loader: "postcss-loader",
+            options: {
+              plugins() {
+                return [autoprefixer({ browserlist: "cover 99.5%" })];
+              }
+            }
+          },
+          {
+            loader: "sass-loader"
+          }
+        ])
+      }
+    ]
+  },
+  output: {
+    path: OUTPUT_DIR,
+    filename: "[name].js"
+  },
+  plugins: [new ExtractCSS("styles.css")]
+};
+
+module.exports = config;
+```
+
+css와 같은 방식으로 작업하면 된다. rules에 객체 형태로 추가한다. ES6 파일을 webpack이 이해할 수 있게 babel-loader를 설치하고 이를 loader로 설정해준다. 
+
+```powershell
+PS C:\Users\user\Desktop\Project\wetube> npm install babel-loader
+```
+
+그리고 브라우저를 실행하면 regenerator-runtime 오류가 발생하는데 이를 해결하기 위해 @babel/polyfill을 설치하고 webpack config entry에 위에 코드처럼 설정해준다.
+
+```powershell
+PS C:\Users\user\Desktop\Project\wetube> npm install @babel/polyfill
+```
+
