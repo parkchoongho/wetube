@@ -8,15 +8,15 @@ header.header
                 input(type="text", name="searchingBy", placeholder="Search Video")
         .header__column
             ul
-                if !user.isAuthenticated  
-                    li
-                        a(href=routes.join) Join
-                    li
-                        a(href=routes.login) Login
-                else
+                if user  
                     li
                         a(href=`/videos${routes.upload}`) Upload
                     li
                         a(href=routes.userDetail(user.id)) User Detail
                     li
                         a(href=routes.logout) Logout
+                else
+                    li
+                        a(href=routes.join) Join
+                    li
+                        a(href=routes.login) Login
