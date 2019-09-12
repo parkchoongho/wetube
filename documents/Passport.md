@@ -510,3 +510,283 @@ videoRouter.get(routes.deleteVideo(), onlyPrivate, deleteVideo);
 
 export default videoRouter;
 ```
+
+### Github Login
+
+passsport-github 설치
+
+```powershell
+PS C:\Users\user\Desktop\Project\wetube> npm i passport-github
+```
+
+Oath가 돌아가는 원리는 이렇다. 사용자를 깃허브 페이지로 보낸다. (특정 URL로 보낸다.) 그 후, 깃허브가 사용자에게 해당 application에 정보를 줘도 괜찮은지 물어보고 사용자가 이를 승인하면 깃허브가 다시 해당 application에 사용자의 정보와 함께 사용자를 돌려보낸다.
+
+여기서는 특정 URL을 http://localhost:4000/auth/github/callback을 사용한다.
+
+github에 OAuth Application 설정하고 난후 passport.js 수정
+
+```javascript
+import routes from "./routes";
+
+passport.use(User.createStrategy());
+
+passport.use(
+    new GithubStrategy(
+        {
+            clientID: process.env.GH_ID,
+            clientSecret: process.env.GH_SECRET,
+            callbackURL: `http://localhost:3000${routes.githubCallback}`
+        },
+        githubLoginCallback
+    )
+);
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+```
+
+clientID와 clientSecret은 보이면 안되므로 환경변수에 넣어놓고 불러와 사용한다. callbackURL은 github에 요청을 한 다음, 이동할 URL이다. 그러면 자동으로 GitHub가 이에 해당하는 유저 정보를 가져와 주고 이를 다시 githubLoginCallback 함수에 전달해  로그인을 진행한다. (프로세스가 정확히 어떻게 되는지 이해할 것.)
+
+여기까지 작성하면 깃허브에서 돌아오는 프로세스를 작성한 것이지, 깃허브로 보내는 것은 아직 작업한 것이 아니다. github로 보내는 작업을 해보자.
+
+routes.js
+
+```javascript
+// Global
+const HOME = "/";
+const JOIN = "/join";
+const LOGIN = "/login";
+const LOGOUT = "/logout";
+const SEARCH = "/search";
+
+// Users
+const USERS = "/users";
+const USER_DETAIL = "/:id";
+const EDIT_PROFILE = "/edit-profile";
+const CHANGE_PASSWORD = "/change-password";
+
+// Videos
+const VIDEOS = "/videos";
+const UPLOAD = "/upload";
+const VIDEO_DETAIL = "/:id";
+const EDIT_VIDEO = "/:id/edit";
+const DELETE_VIDEO = "/:id/delete";
+
+// Github
+const GITHUB = "/auth/github";
+const GITHUB_CALLBACK = "/auth/github/callback";
+
+const routes = {
+    home: HOME,
+    join: JOIN,
+    login: LOGIN,
+    logout: LOGOUT,
+    search: SEARCH,
+    users: USERS,
+    userDetail: id => {
+        if (id) {
+            return `/users/${id}`;
+        }
+        return USER_DETAIL;
+    },
+
+    editProfile: EDIT_PROFILE,
+    changePassword: CHANGE_PASSWORD,
+    videos: VIDEOS,
+    upload: UPLOAD,
+    videoDetail: id => {
+        if (id) {
+            return `/videos/${id}`;
+        }
+        return VIDEO_DETAIL;
+    },
+    editVideo: id => {
+        if (id) {
+            return `/videos/${id}/edit`;
+        }
+        return EDIT_VIDEO;
+    },
+    deleteVideo: id => {
+        if (id) {
+            return `/videos/${id}/delete`;
+        }
+        return DELETE_VIDEO;
+    },
+    github: GITHUB,
+    githubCallback: GITHUB_CALLBACK
+};
+
+export default routes;
+```
+
+globalRouter.js
+
+```javascript
+import express from "express";
+import passport from "passport";
+import routes from "../routes";
+import { home, search } from "../controllers/videoController";
+import {
+    logout,
+    getJoin,
+    postJoin,
+    getLogin,
+    postLogin,
+    githubLogin,
+    postGithubLogin
+} from "../controllers/userController";
+import { onlyPublic, onlyPrivate } from "../middlewares";
+
+const globalRouter = express.Router();
+
+globalRouter.get(routes.join, onlyPublic, getJoin);
+globalRouter.post(routes.join, onlyPublic, postJoin, postLogin);
+
+globalRouter.get(routes.login, onlyPublic, getLogin);
+globalRouter.post(routes.login, onlyPublic, postLogin);
+
+globalRouter.get(routes.home, home);
+globalRouter.get(routes.search, search);
+globalRouter.get(routes.logout, onlyPrivate, logout);
+
+globalRouter.get(routes.github, githubLogin); 
+// githubLogin 함수가 사용자를 GitHub 사이트로 보내는 역할.
+globalRouter.get(
+    routes.githubCallback, 
+    // githubCallback URL로 들어오면 passport는 githubLoginCallback 함수를 실행한다.
+    passport.authenticate("github", { failureRedirect: "/login" }),
+    // 만약 유저를 찾으면, 쿠키를 생성하고 저정한 후, postGitHubLogin 함수를 실행하고 못 찾았으면 "/login"으로 리다이렉트 한다.
+    postGithubLogin
+);
+
+export default globalRouter;
+```
+
+userController.js
+
+```javascript
+import passport from "passport";
+import routes from "../routes";
+import User from "../models/User";
+
+export const getJoin = (req, res) => {
+    res.render("join", { pageTitle: "Join" });
+};
+
+export const postJoin = async (req, res, next) => {
+    const {
+        body: { name, email, password, veriPassword }
+    } = req;
+
+    if (password !== veriPassword) {
+        res.status(400);
+        res.render("join", { pageTitle: "Join" });
+    } else {
+        try {
+            const user = await User({
+                name,
+                email
+            });
+            await User.register(user, password);
+            next();
+        } catch (error) {
+            console.log(error);
+            res.redirect(routes.home);
+        }
+    }
+};
+
+export const getLogin = (req, res) =>
+res.render("login", { pageTitle: "Login" });
+
+export const postLogin = passport.authenticate("local", {
+    failureRedirect: routes.login,
+    successRedirect: routes.home
+});
+
+export const githubLogin = passport.authenticate("github");
+
+export const githubLoginCallback = async (_, __, profile, cb) => {
+    const {
+        _json: { id, avatar_url: avatarUrl, name, email }
+    } = profile;
+    try {
+        const user = await User.findOne({ email });
+        if (user) {
+            user.githubID = id;
+            user.save();
+            return cb(null, user);
+        }
+        const newUser = await User.create({
+            name,
+            email,
+            githubID: id,
+            avatarUrl
+        });
+        return cb(null, newUser);
+    } catch (error) {
+        return cb(error);
+    }
+};
+
+export const postGithubLogin = (req, res) => {
+    res.redirect(routes.home);
+};
+
+export const logout = (req, res) => {
+    req.logout();
+    res.redirect(routes.home);
+};
+
+export const users = (req, res) => res.render("users", { pageTitle: "Users" });
+export const userDetail = (req, res) =>
+res.render("userDetail", { pageTitle: "User Detail" });
+export const editProfile = (req, res) =>
+res.render("editProfile", { pageTitle: "Edit Profile" });
+export const changePassword = (req, res) =>
+res.render("changePassword", { pageTitle: "Change Password" });
+```
+
+**Tip**: githubLoginCallback 함수를 보면, `_`, `__` 같은 기호를 살펴볼 수 있는데 이건 accessToken과 refreshToken이다. 그런데 이 함수에서는 사용하지 않고 뒤에 profile과 cb은 필요하다. 따라서 parameter의 개수롸 순서는 망가뜨리지 않고 대신 사용하지 않는 요소는 다르게 입력할 필요가 있을 떄 `_`, `__` 같이 처리한다.
+
+passport.js
+
+```javascript
+import passport from "passport";
+import GithubStrategy from "passport-github";
+import User from "./models/User";
+import { githubLoginCallback } from "./controllers/userController";
+import routes from "./routes";
+
+passport.use(User.createStrategy());
+
+passport.use(
+    new GithubStrategy(
+        {
+            clientID: process.env.GH_ID,
+            clientSecret: process.env.GH_SECRET,
+            callbackURL: `http://localhost:3000${routes.githubCallback}`
+        },
+        githubLoginCallback
+    )
+);
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+```
+
+### Authentication Process
+
+**Local 방식**
+
+username과 password를 사용한 인증방식을 local 방식이라 한다. username과 password를 post 방식으로 전달한다. 설치해둔 플러그인인 mongoose가 자동으로 이를 체크해 username과 password가 맞으면 passport에게 맞다는 것을 알리고 그 다음, passport가 쿠키를 생성한다. 
+
+**GitHub 방식**
+
+먼저, 사용자는 GitHub 사이트로 이동하면 GitHub사이트에서 권한 승인(Auth)을 한다. 그 다음, GitHub 사이트는 그 사용자의 정보를 사용자에게 전달한다. 그때, /auth/github/callback url로 오게된다. 이렇게 되면, passport가 함수를 호출하게 되는데, 그 함수가 우리가 만든 githubLoginCallback이다.
+
+githubLoginCallback에서 유저 정보와 같은 데이터를 받아오고 이 데이터를 바탕으로 하고 싶은 프로세스를 설정한다. 이때, githubLoginCallback 함수의 1가지 조건이 있는데, callback(cb) 함수를 return 해야한다는 것이다. 그리고 그 함수에게는 error가 있는지, user가 있는지를 알려주어야 한다.
+
+만일 error가 있으면 passport는 error가 있고 user는 없는 것으로 판단하고 일을 진행한다. user가 존재하면 passport는 이 user를 가지고 쿠키를 생성하고 저정한 후, 저장된 쿠키를 브라우저로 보낸다.
+
+**Tip**: 이유는 정확히 모르겠으나 .env 파일에서 ID는 ""을 붙여서 전달하면 제대로 전달되는데 Password에 ""를 붙히면 ""까지 문자열로 인식되어 전달된다. 따라서 Passsword는 ""로 감싸지 말것. (이유가 멀까?)
