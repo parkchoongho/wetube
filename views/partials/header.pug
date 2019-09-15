@@ -8,11 +8,11 @@ header.header
                 input(type="text", name="searchingBy", placeholder="Search Video")
         .header__column
             ul
-                if user  
+                if loggedUser  
                     li
                         a(href=`/videos${routes.upload}`) Upload
                     li
-                        a(href=routes.userDetail(user.id)) User Detail
+                        a(href=routes.me) Profile
                     li
                         a(href=routes.logout) Logout
                 else
