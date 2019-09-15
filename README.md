@@ -10,23 +10,17 @@ Cloning Youtube with Vanilla and NodeJS
 
 ### [4. Webpack](https://github.com/parkchoongho/wetube/blob/master/documents/Webpack.md)
 
-### [5. Styling](https://github.com/parkchoongho/wetube/blob/master/documents/Styling.md)
+### [5. Passport](https://github.com/parkchoongho/wetube/blob/master/documents/Passport.md)
 
-### [6. Passport](https://github.com/parkchoongho/wetube/blob/master/documents/Passport.md)
+### [6. Route Protection](https://github.com/parkchoongho/wetube/blob/master/documents/RouteProtection.md)
 
-### [7. Route Protection](https://github.com/parkchoongho/wetube/blob/master/documents/RouteProtection.md)
+### [7. Video Player](https://github.com/parkchoongho/wetube/blob/master/documents/VideoPlayer.md)
 
-### [8. Video Player](https://github.com/parkchoongho/wetube/blob/master/documents/VideoPlayer.md)
+### [8. Recording Video](https://github.com/parkchoongho/wetube/blob/master/documents/Recording.md)
 
-### [9. Recording Video](https://github.com/parkchoongho/wetube/blob/master/documents/Recording.md)
+### [9. AJAX](https://github.com/parkchoongho/wetube/blob/master/documents/AJAX.md)
 
-### [10. AJAX](https://github.com/parkchoongho/wetube/blob/master/documents/AJAX.md)
-
-
-
-
-
-
+<br>
 
 ## Pages:
 
