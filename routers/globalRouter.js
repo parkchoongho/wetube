@@ -9,7 +9,8 @@ import {
   postLogin,
   logout,
   githubLogin,
-  postGithubLogin
+  postGithubLogin,
+  me
 } from "../controllers/userController";
 import { onlyPublic, onlyPrivate } from "../localMiddlewares";
 
@@ -32,6 +33,8 @@ globalRouter.get(
   }),
   postGithubLogin
 );
+
+globalRouter.get(routes.me, onlyPrivate, me);
 
 globalRouter.get(routes.logout, onlyPrivate, logout);
 
