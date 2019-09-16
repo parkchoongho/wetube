@@ -111,7 +111,7 @@ export const postEditProfile = async (req, res) => {
 export const getChangePassword = (req, res) =>
   res.render("changePassword", { pageTitle: "Change Password" });
 
-export const postChangePasssword = async (req, res) => {
+export const postChangePassword = async (req, res) => {
   // console.log(req.user);
   const {
     body: { curPassword, newPassword, veriPassword }
