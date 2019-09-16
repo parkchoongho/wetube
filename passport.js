@@ -5,6 +5,7 @@ import routes from "./routes";
 import { githubLoginCallback } from "./controllers/userController";
 
 passport.use(User.createStrategy());
+
 passport.use(
   new GithubStrategy(
     {
