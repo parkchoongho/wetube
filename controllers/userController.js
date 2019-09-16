@@ -8,6 +8,7 @@ export const postJoin = async (req, res, next) => {
   const {
     body: { name, email, password, veriPassword }
   } = req;
+  // console.log(req.body);
   if (password !== veriPassword) {
     res.status(400);
     res.redirect(routes.join);
@@ -17,6 +18,7 @@ export const postJoin = async (req, res, next) => {
         name,
         email
       });
+      console.log(user);
       await User.register(user, password);
       next();
     } catch (error) {
@@ -102,9 +104,27 @@ export const postEditProfile = async (req, res) => {
     res.redirect(routes.me);
   } catch (error) {
     console.log(error);
-    res.render("editProfile", { Pagetitle: "Edit Profile" });
+    res.redirect(`/users${routes.editProfile}`);
   }
 };
 
-export const changePassword = (req, res) =>
+export const getChangePassword = (req, res) =>
   res.render("changePassword", { pageTitle: "Change Password" });
+
+export const postChangePasssword = async (req, res) => {
+  // console.log(req.user);
+  const {
+    body: { curPassword, newPassword, veriPassword }
+  } = req;
+  try {
+    if (newPassword !== veriPassword) {
+      res.status(400);
+      res.redirect(`/users${routes.changePassword}`);
+    }
+    await req.user.changePassword(curPassword, newPassword);
+    res.redirect(routes.me);
+  } catch (error) {
+    console.log(error);
+    res.redirect(`/users${routes.changePassword}`);
+  }
+};
