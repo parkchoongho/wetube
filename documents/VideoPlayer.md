@@ -190,3 +190,129 @@ if (videoContainer) {
 }
 ```
 
+### 영상 시간 처리 작업
+
+영상 시간은 기본적으로 우리가 편하게 보는 형태의 문자열로 전환해야 한다. videoPlayer.duration으로 값을 받아와서 문자열로 return하는 함수를 만들고 이를 각각의 document 객체에 뿌리는 작업을 수행한다.
+
+videoPlayer.js 수정
+
+```javascript
+const videoContainer = document.getElementById("jsVideoPlayer");
+const videoPlayer = document.querySelector("#jsVideoPlayer video");
+const playBtn = document.getElementById("jsPlayButton");
+const volumeBtn = document.getElementById("jsVolumeBtn");
+const fullScrnBtn = document.getElementById("jsFullScreen");
+const currentTime = document.getElementById("jsCurrentTime");
+const totalTime = document.getElementById("jsTotalTime");
+
+function handlePlayClick() {
+    if (videoPlayer.paused) {
+        videoPlayer.play();
+        playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    } else {
+        videoPlayer.pause();
+        playBtn.innerHTML = '<i class="fas fa-play"></i>';
+    }
+}
+
+function handleVolumeClick() {
+    if (videoPlayer.muted) {
+        videoPlayer.muted = false;
+        volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+    } else {
+        videoPlayer.muted = true;
+        volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+    }
+}
+
+function exitFullScreen() {
+    fullScrnBtn.innerHTML = '<i class="fas fa-expand"></i>';
+    fullScrnBtn.addEventListener("click", goFullScreen);
+    if (document.exitFullscreen) {
+        document.exitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+        document.mozCancelFullScreen();
+    } else if (document.webkitExitFullScreen) {
+        document.webkitExitFullScreen();
+    } else if (document.msExitFullScreen) {
+        document.msExitFullScreen();
+    }
+}
+
+function goFullScreen() {
+    if (videoContainer.requestFullscreen) {
+        videoContainer.requestFullscreen();
+    } else if (videoContainer.mozRequestFullScreen) {
+        videoContainer.mozRequestFullScreen();
+    } else if (videoContainer.webkitRequestFullScreen) {
+        videoContainer.webkitRequestFullScreen();
+    } else if (videoContainer.msRequestFullScreen) {
+        videoContainer.msRequestFullScreen();
+    }
+
+    fullScrnBtn.innerHTML = '<i class="fas fa-compress"></i>';
+    fullScrnBtn.removeEventListener("click", goFullScreen);
+    fullScrnBtn.addEventListener("click", exitFullScreen);
+}
+
+const formatDate = seconds => {
+    const secondsNumber = parseInt(seconds, 10);
+    let hours = Math.floor(secondsNumber / 3600);
+    let minutes = Math.floor((secondsNumber - hours * 3600) / 60);
+    let totalSeconds = secondsNumber - hours * 3600 - minutes * 60;
+
+    if (hours < 10) {
+        hours = `0${hours}`;
+    }
+    if (minutes < 10) {
+        minutes = `0${minutes}`;
+    }
+    if (totalSeconds < 10) {
+        totalSeconds = `0${totalSeconds}`;
+    }
+    return `${hours}:${minutes}:${totalSeconds}`;
+};
+
+function getCurrentTime() {
+    currentTime.innerHTML = formatDate(videoPlayer.currentTime);
+}
+
+function setTotalTime() {
+    totalTime.innerHTML = formatDate(videoPlayer.duration);
+    setInterval(getCurrentTime, 1000);
+}
+
+function init() {
+    playBtn.addEventListener("click", handlePlayClick);
+    volumeBtn.addEventListener("click", handleVolumeClick);
+    fullScrnBtn.addEventListener("click", goFullScreen);
+    videoPlayer.addEventListener("loadedmetadata", setTotalTime);
+}
+
+if (videoContainer) {
+    init();
+}
+```
+
+videoPlayer.pug 수정
+
+```jade
+mixin videoPlayer(video = {})
+    .videoPlayer#jsVideoPlayer
+        video(src=`/${video.src}`)
+        .videoPlayer__controls
+            .videoPlayer__column
+                span#jsVolumeBtn
+                    i.fas.fa-volume-up
+                span
+                    span#jsCurrentTime 00:00:00
+                    |/ 
+                    span#jsTotalTime  00:00:00
+            .videoPlayer__column
+                span#jsPlayButton
+                    i.fas.fa-play
+            .videoPlayer__column
+                span#jsFullScreen
+                    i.fas.fa-expand
+```
+
