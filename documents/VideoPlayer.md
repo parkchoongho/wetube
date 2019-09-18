@@ -127,3 +127,66 @@ if (videoContainer) {
 }
 ```
 
+### FullScreen 동작 작업
+
+FullScreen 동작은 위처럼 단순히 값을 받아와 전체화면으로 만들 수 없다. 따라서 전체화면으로 만든 후, EventListener를 바꾸는 작업을 한다. (원래화면으로 만드는 기능)
+
+https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullScreen
+
+vendor prefix란, 이 함수들은 안된다는 의미이다. (문서 참조)
+
+vendor prefix: webkit => 앞에 webkit을 붙여야 그 브라우저에서 사용가능하다는 의미.
+
+=> requestFullScreen()이 아직 구글 크롬에서 지원하지 않으므로, webkit이라는 구글 크롬이 제공하는 엔진을 사용한다. webkitRequestFullScreen()
+
+```javascript
+const videoContainer = document.getElementById("jsVideoPlayer");
+const videoPlayer = document.querySelector("#jsVideoPlayer video");
+const playBtn = document.getElementById("jsPlayButton");
+const volumeBtn = document.getElementById("jsVolumeBtn");
+const fullScrnBtn = document.getElementById("jsFullScreen");
+
+function handlePlayClick() {
+    if (videoPlayer.paused) {
+        videoPlayer.play();
+        playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    } else {
+        videoPlayer.pause();
+        playBtn.innerHTML = '<i class="fas fa-play"></i>';
+    }
+}
+
+function handleVolumeClick() {
+    if (videoPlayer.muted) {
+        videoPlayer.muted = false;
+        volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+    } else {
+        videoPlayer.muted = true;
+        volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+    }
+}
+
+function exitFullScreen() {
+    fullScrnBtn.innerHTML = '<i class="fas fa-expand"></i>';
+    fullScrnBtn.addEventListener("click", goFullScreen);
+    document.webkitExitFullscreen();
+}
+
+function goFullScreen() {
+    videoContainer.webkitRequestFullscreen();
+    fullScrnBtn.innerHTML = '<i class="fas fa-compress"></i>';
+    fullScrnBtn.removeEventListener("click", goFullScreen);
+    fullScrnBtn.addEventListener("click", exitFullScreen);
+}
+
+function init() {
+    playBtn.addEventListener("click", handlePlayClick);
+    volumeBtn.addEventListener("click", handleVolumeClick);
+    fullScrnBtn.addEventListener("click", goFullScreen);
+}
+
+if (videoContainer) {
+    init();
+}
+```
+
