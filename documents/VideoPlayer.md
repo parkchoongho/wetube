@@ -316,3 +316,81 @@ mixin videoPlayer(video = {})
                     i.fas.fa-expand
 ```
 
+### 영상 종료시 작업
+
+현 코드에서는 영상 종료시에 다시 영상 처음으로 돌아가지 않고 그대로 멈춰있다. 그리고 재생 버튼도 stop 버튼에서 재생버튼으로 바뀌지 않는다. 이를 수정해보자.
+
+```javascript
+function handleEnded() {
+    videoPlayer.currentTime = 0;
+    playBtn.innerHTML = '<i class="fas fa-play"></i>';
+}
+function init() {
+    videoPlayer.volume = 0.5;
+    playBtn.addEventListener("click", handlePlayClick);
+    volumeBtn.addEventListener("click", handleVolumeClick);
+    screenBtn.addEventListener("click", goFullScreen);
+    videoPlayer.addEventListener("loadedmetadata", setTotalTime);
+    videoPlayer.addEventListener("ended", handleEnded);
+}
+```
+
+videoPlayer에 `"ended"` 라는 event를 할당하고 `handleEnded` 라는 콜백함수를 넣고 이를 제어한다.
+
+### 볼륨 크기 조절 작업
+
+지금까지는 볼륨 버튼을 클릭해서 소리를 끄거나 키는 기능밖에 구현하지 않았지만 이제 볼륨 바를 만들어 볼륨을 조절할 수 있게 하는 기능을 구현해보자.
+
+videoPlayer.pug
+
+```jade
+mixin videoPlayer(video = {})
+    .videoPlayer#jsVideoPlayer
+        video(src=`/${video.src}`)
+        .videoPlayer__controls
+            .videoPlayer__column
+                input.videoPlayer__volume#jsVolume(type="range", min="0", max="1", step="0.1")
+                span#jsVolumeBtn
+                    i.fas.fa-volume-up
+                span#currentTime 00:00:00
+                span /  
+                span#totalTime 00:00:00
+            .videoPlayer__column
+                span#jsPlayBtn
+                    i.fas.fa-play
+            .videoPlayer__column
+                span#jsScreenBtn
+                    i.fas.fa-expand
+```
+
+videoPlayer.js
+
+```javascript
+const volumeRange = document.getElementById("jsVolume");
+
+function handleDrag(event) {
+  const {
+    target: { value }
+  } = event;
+  videoPlayer.volume = value;
+  if (value >= 0.6) {
+    volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+  } else if (value >= 0.2) {
+    volumeBtn.innerHTML = '<i class="fas fa-volume-down"></i>';
+  } else {
+    volumeBtn.innerHTML = '<i class="fas fa-volume-off"></i>';
+  }
+}
+
+function init() {
+  videoPlayer.volume = 0.5;
+  playBtn.addEventListener("click", handlePlayClick);
+  volumeBtn.addEventListener("click", handleVolumeClick);
+  fullScrnBtn.addEventListener("click", goFullScreen);
+  videoPlayer.addEventListener("loadedmetadata", setTotalTime);
+  videoPlayer.addEventListener("ended", handleEnded);
+  volumeRange.addEventListener("input", handleDrag);
+}
+```
+
+volumeRange에 `input` event를 `handleDrag` 함수로 제어하는 코드다.
