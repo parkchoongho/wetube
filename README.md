@@ -1,3 +1,5 @@
+<!-- @format -->
+
 # Wetube
 
 Cloning Youtube with Vanilla and NodeJS
@@ -21,16 +23,3 @@ Cloning Youtube with Vanilla and NodeJS
 ### [9. AJAX](https://github.com/parkchoongho/wetube/blob/master/documents/AJAX.md)
 
 <br>
-
-## Pages:
-
-- [x] Home
-- [x] Join
-- [x] Login
-- [x] Search
-- [x] User Detail
-- [x] Edit Profile
-- [x] Change Password
-- [x] Upload
-- [x] Video Detail
-- [x] Edit Video
